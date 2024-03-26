@@ -22,6 +22,8 @@ distance1 = 0
 # Using cv2.putText() method 
 # Open the camera
 cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 700)
 
 cell_object_width= 15
 cell_d = 46
@@ -66,25 +68,29 @@ while True:
 
         if(class_name == "cell phone"):
             distance1 = calculate_distance(cell_object_width,cell_d,w)
+            class_name = f"{class_name} " + str(int(distance1)) + " cm"
         elif(class_name == "bottle"):
             distance1 = calculate_distance(bottle_object_width,bottle_d,w)
+            class_name = f"{class_name} " + str(int(distance1)) + " cm"
         elif(class_name == "keyboard"):
             distance1 == calculate_distance(kb_object_width,kb_d,w)
+            class_name = f"{class_name} " + str(int(distance1)) + " cm"
         elif(class_name == "book"):
             distance1 == calculate_distance(book_object_width,book_d,w)
+            class_name = f"{class_name} " + str(int(distance1)) + " cm"
         elif(class_name == "person"):
             frame,faces = detector.findFaceMesh(frame,draw=False)
             if faces:
                 face=faces[0]
                 pointLeft = face[145]
                 pointRight = face[374]
-                # cv2.circle(img,pointLeft,5,(255,0,0),cv2.FILLED)
-                # cv2.circle(img, pointRight, 5, (255, 0, 0), cv2.FILLED)
-                # cv2.line(img,pointLeft,pointRight,(0,0,0),3)
                 w,_ = detector.findDistance(pointLeft,pointRight)
                 W = 6.3
                 f = 668
                 distance1 = (W*f)/w
+                class_name = f"{class_name} " + str(int(distance1)) + " cm"
+        else:
+            class_name = class_name
         
         if(distance1 <= 50):
             
@@ -100,7 +106,7 @@ while True:
         cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
 
         org = (int(x1), int(y1))
-        class_name = class_name + str(int(distance1))
+        
         font = cv2.FONT_HERSHEY_SIMPLEX 
 
         l1 = str(label)
@@ -115,7 +121,3 @@ while True:
     # Exit the loop when the 'q' key is pressed
     if cv2.waitKey(1)==27:
         break
-
-# Release the camera and destroy all windows
-#cap.release()
-#cv2.destroyAllWindows()

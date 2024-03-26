@@ -3,8 +3,14 @@ from ultralytics import YOLO
 import numpy
 #from ultralytics.solutions import distance_calculation
 from cvzone.FaceMeshModule import FaceMeshDetector
-detector = FaceMeshDetector(maxFaces=50)
+import pyttsx3
+import threading
+import datetime
 
+
+detector = FaceMeshDetector(maxFaces=50)
+current_time = datetime.datetime.now().time()
+engine = pyttsx3.init()
 
 model = YOLO('yolov8s.pt')
 
@@ -38,6 +44,26 @@ book_d = 46
 prev_frame_time = 0
 new_frame_time = 0
 
+def calculate_distance(cell_object_width, cell_d, w):
+            cell_focal_length = (cell_object_width * cell_d) / w
+            cell_apparent_width = w  # Apparent width of the cell phone in pixels
+            cell_distance = ((cell_object_width * 3.9) / cell_apparent_width)*100
+            return cell_distance
+
+def speak(text):
+    engine.setProperty('rate', 150)  # Adjust the speaking rate (words per minute)
+    engine.setProperty('volume', 0.9)  # Set the volume level (0.0 to 1.0)
+    engine.setProperty('pitch', 50) 
+    engine.say(text)
+    engine.runAndWait()
+
+if current_time >= datetime.time(5, 0, 0) and current_time < datetime.time(12, 0, 0):
+    speak("Good morning")
+elif current_time >= datetime.time(12, 0, 0) and current_time < datetime.time(18, 0, 0):
+    speak("Good afternoon")
+else:
+    speak("Good evening")
+
 while True:
     ret, frame = cap.read()
     
@@ -60,11 +86,6 @@ while True:
 
         conf = box.conf[0].item()  
         # Hypothetical function to calculate distance
-        def calculate_distance(cell_object_width, cell_d, w):
-            cell_focal_length = (cell_object_width * cell_d) / w
-            cell_apparent_width = w  # Apparent width of the cell phone in pixels
-            cell_distance = ((cell_object_width * 3.9) / cell_apparent_width)*100
-            return cell_distance
 
         if(class_name == "cell phone"):
             distance1 = calculate_distance(cell_object_width,cell_d,w)
@@ -95,10 +116,8 @@ while True:
         if(distance1 <= 50):
             
             text ="Distance is too Low! maintain the distance"
-
+            threading.Thread(target=speak, args=(text,)).start()
             frame = cv2.putText(frame, text, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color, thickness, cv2.LINE_AA)
-            
-
 
         # Print the detection result
         print(f"{class_name} detected at ({x1}, {y1}), ({x2}, {y2}) with confidence {conf}")
@@ -120,4 +139,5 @@ while True:
 
     # Exit the loop when the 'q' key is pressed
     if cv2.waitKey(1)==27:
+        speak("Thank You")
         break
